@@ -446,34 +446,33 @@ class Simulation:
         )
         return longest_cost * max(self.number_of_drones, 1) * 10 + 100
 
+    def capacity_snapshot(self) -> Dict[str, Dict[str, int]]:
+        """Return used zone and connection capacity.
 
-def capacity_snapshot(self) -> Dict[str, Dict[str, int]]:
-    """Return used zone and connection capacity.
+            Returns:
+                A dictionary containing the used capacity
+                of each zone and connection.
 
-        Returns:
-            A dictionary containing the used capacity
-            of each zone and connection.
+        """
 
-    """
+        zones: Dict[str, int] = {}
+        occupancy = self._occupied_zone_counts()
+        transit_reservations = self._transit_destination_counts()
 
-    zones: Dict[str, int] = {}
-    occupancy = self._occupied_zone_counts()
-    transit_reservations = self._transit_destination_counts()
+        for zone in self.graph.zones:
+            if zone in (self.graph.start_hub, self.graph.end_hub):
+                zones[zone.name] = 0
+            else:
+                zones[zone.name] = (
+                    occupancy.get(zone, 0)
+                    + transit_reservations.get(zone, 0)
+                )
 
-    for zone in self.graph.zones:
-        if zone in (self.graph.start_hub, self.graph.end_hub):
-            zones[zone.name] = 0
-        else:
-            zones[zone.name] = (
-                occupancy.get(zone, 0)
-                + transit_reservations.get(zone, 0)
-            )
+        links: Dict[str, int] = {}
+        active = self._active_connection_counts()
 
-    links: Dict[str, int] = {}
-    active = self._active_connection_counts()
+        for connection in self.graph.connections:
+            name = f"{connection.zone1.name}-{connection.zone2.name}"
+            links[name] = active.get(connection, 0)
 
-    for connection in self.graph.connections:
-        name = f"{connection.zone1.name}-{connection.zone2.name}"
-        links[name] = active.get(connection, 0)
-
-    return {"zones": zones, "links": links}
+        return {"zones": zones, "links": links}
