@@ -451,7 +451,7 @@ class Simulation:
 
             Returns:
                 A dictionary containing the used capacity
-                of each zone and connection.
+                for each zone and connection.
 
         """
 
